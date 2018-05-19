@@ -13,8 +13,8 @@ sheetName = []
 group = []
 
 
-def check_tc(filepath):
-    wb = openpyxl.load_workbook(filepath)
+def check_tc(file_path):
+    wb = openpyxl.load_workbook(file_path)
     sheet_name = wb.sheetnames
     group_data = []
     for j in range(len(sheet_name)):
