@@ -1,16 +1,11 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
-
-
 import openpyxl
-
 '''
 filename=input('输入检查文件名：')
 wb=openpyxl.load_workbook(filename)
 '''
 # 检查sheet内容
-sheetName = []
-group = []
 
 
 def check_tc(file_path):
