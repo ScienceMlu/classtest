@@ -69,8 +69,44 @@ def check_tc(file_path):
     return group_data, sheet_name
 
 
+def check_timetable(file_path):
+    import re
+    wb = openpyxl.load_workbook(file_path)
+    sheet_name = wb.sheetnames
+    error_txt = []
+    for j in sheet_name:
+        if j == '時間＿承認':
+            sheet1 = wb[j]
+            '''此处第一版，固定模式'''
+            if sheet1['C9'].value is None:
+                data_error_txt = '请填写检查时间（使用Ctrl+；）'
+                error_txt.append(data_error_txt)
+            if not re.match(u'^\u672a\u67e5\u8be2\u5230\u7ed3\u679c', sheet1['C13'].value):
+                name_error_txt = '请填写检查人姓名'
+                error_txt.append(name_error_txt)
+            if sheet1['C15'].value is None:
+                version_error_txt = '请输入版本号'
+                error_txt.append(version_error_txt)
+            if sheet1['C17'].value is None:
+                pcname_error_txt = '请输入测试pc名'
+                error_txt.append(pcname_error_txt)
+            if sheet1['C19'].value is None:
+                osAndlang_error_txt = '请输入pc的os名和言语环境'
+                error_txt.append(osAndlang_error_txt)
+            if not re.match(r'WLAN' | 'Bluetooth' | 'USB', sheet1['C21']):
+                IF_error_txt = '请输入连接方式'
+                error_txt.append(IF_error_txt)
+            if sheet1['C23'].value is None:
+                Model_error_txt = '请输入评价设备名'
+                error_txt.append(Model_error_txt)
+            if sheet1['C26'].value is None and not re.match('^\d', sheet1['C26'].value):
+                time_error_txt = '请输入评价时间'
+                error_txt.append(time_error_txt)
+    return error_txt
+
+
 # 写结果
-def write_result(group_data, sheet_name, save_name):
+def write_result(group_data, sheet_name, save_name, error_txt):
     from openpyxl.styles import Alignment
     from openpyxl import Workbook
     wb = Workbook()
@@ -80,17 +116,35 @@ def write_result(group_data, sheet_name, save_name):
 
         '''设置字体大小颜色，单元格背景'''
 
-        # 合并单元格'
-        ws.merge_cells('A1:B2')
+        # 合并单元格
         # 空值
-        ws.merge_cells('C1:D2')
+        ws.merge_cells('A1:B2')
         # △
-        ws.merge_cells('E1:F2')
+        ws.merge_cells('C1:D2')
         # ×
-        ws.merge_cells('G1:H2')
+        ws.merge_cells('E1:F2')
         # N/A
-        ws.merge_cells('I1:J2')
+        ws.merge_cells('G1:H2')
         # 格式不符
+        ws.merge_cells('I1:J2')
+        # 时间_承认 错误 标题
+        ws.merge_cells('L1:O2')
+        # 检查日错误
+        ws.merge_cells('L3:O4')
+        # 检查人错误
+        ws.merge_cells('L5:O6')
+        # 版本号错误
+        ws.merge_cells('L7:O8')
+        # 测试pc名错误
+        ws.merge_cells('L9:O10')
+        # 测试pc的os和言语环境错误
+        ws.merge_cells('L11:O12')
+        # 连接方式错误
+        ws.merge_cells('L13:O14')
+        # 评价设备名错误
+        ws.merge_cells('L15:O16')
+        # 评价时间错误
+        ws.merge_cells('L17:O18')
 
         # 居中单元格
         ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
@@ -98,6 +152,15 @@ def write_result(group_data, sheet_name, save_name):
         ws['E1'].alignment = Alignment(horizontal='center', vertical='center')
         ws['G1'].alignment = Alignment(horizontal='center', vertical='center')
         ws['I1'].alignment = Alignment(horizontal='center', vertical='center')
+        ws['L1'].alignment = Alignment(horizontal='center', vertical='center')
+        ws['L3'].alignment = Alignment(horizontal='center', vertical='center')
+        ws['L5'].alignment = Alignment(horizontal='center', vertical='center')
+        ws['L7'].alignment = Alignment(horizontal='center', vertical='center')
+        ws['L9'].alignment = Alignment(horizontal='center', vertical='center')
+        ws['L11'].alignment = Alignment(horizontal='center', vertical='center')
+        ws['L13'].alignment = Alignment(horizontal='center', vertical='center')
+        ws['L15'].alignment = Alignment(horizontal='center', vertical='center')
+        ws['L17'].alignment = Alignment(horizontal='center', vertical='center')
 
         # 填写格式
         ws['A1'].value = '空值'
@@ -105,6 +168,7 @@ def write_result(group_data, sheet_name, save_name):
         ws['E1'].value = '×'
         ws['G1'].value = 'N/A'
         ws['I1'].value = '格式不符'
+        ws['L1'].value = '時間＿承認 错误'
 
         i = 0
         for cols in range(1, 10, 2):
@@ -177,9 +241,13 @@ def write_result(group_data, sheet_name, save_name):
                 break
         print('================')
 
+        # 时间_承认错误文本
+        for j in error_txt:
+            for m in range(1, 17, 2):
+                cell_name = 'L%d' % m
+                ws[cell_name].value = j
         # 保存
-
-    wb.save(save_name)
+    wb.save(u'%s' % save_name)
 
 
 '''                

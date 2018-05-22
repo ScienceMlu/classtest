@@ -10,9 +10,8 @@ def check_timetable(file_path):
     for j in sheet_name:
         if j == '時間＿承認':
             sheet1 = wb[j]
-            '''此处写死'''
+            '''此处第一版，固定模式'''
             if sheet1['C9'].value is None:
-                print()
                 data_error_txt = '请填写检查时间（使用Ctrl+；）'
             if not re.match(u'^\u672a\u67e5\u8be2\u5230\u7ed3\u679c', sheet1['C13'].value):
                 name_error_txt = '请填写检查人姓名'
@@ -22,9 +21,10 @@ def check_timetable(file_path):
                 pcname_error_txt = '请输入测试pc名'
             if sheet1['C19'].value is None:
                 osAndlang_error_txt = '请输入pc的os名和言语环境'
-            if not re.match(r'WLAN'|'Bluetooth'|'USB',sheet1['C21']):
+            if not re.match(r'WLAN' | 'Bluetooth' | 'USB', sheet1['C21']):
                 IF_error_txt = '请输入连接方式'
             if sheet1['C23'].value is None:
                 Model_error_txt = '请输入评价设备名'
             if sheet1['C26'].value is None and not re.match('^\d', sheet1['C26'].value):
                 time_error_txt = '请输入评价时间'
+    return data_error_txt, name_error_txt, version_error_txt, pcname_error_txt, osAndlang_error_txt, IF_error_txt, Model_error_txt, time_error_txt
