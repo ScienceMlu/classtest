@@ -6,7 +6,7 @@ import os
 '''
 遍历主文件下所有的xlsx文件
 dom_path 是图形界面entty选出的路径
-f_path是路径下所有xlsx文件的绝对路径名
+f_path是路径下所有xlsx文件的绝对路径名，使用前先初始化列表
 '''
 
 
