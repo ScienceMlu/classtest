@@ -8,7 +8,7 @@ class BaseUse:
         self.filename = filename
         self.keyword = keyword
         self.wb = load_workbook(filename)
-        self.ws = self.wb['時間_承認']
+        self.ws = self.wb['outlook']
         mix_data = []
         self.mix_data = mix_data
         self.mix_format = mix_format
@@ -57,3 +57,4 @@ class DataWrite(EDataMix):
                     for No in range(Nomax):
                         self.ws['%s%d' % (cell.column, cell.row + No + 1)].value = self.mix_data[No]
         self.wb.save(self.filename)
+
