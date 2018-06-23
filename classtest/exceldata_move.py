@@ -16,7 +16,7 @@ class Deal(object):
             i += 1
             os.mkdir('end%d' % i)
             out_path = 'end%d' % i
-        self.out_path = r'%s\%s' % (out_path, dom_path)
+        self.out_path = r'%s\%s' % (dom_path, out_path)
 
     def find_files(self):
         data_excel = []
@@ -31,7 +31,7 @@ class Deal(object):
 
 class BaseUse(object):
     def __init__(self, filename, sheetname):
-        keyword_old = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+        keyword_old = ['啊', '是', '的', '风', '个', '好', '就', '看', '了', '在']
         keyword_new = ['I', 'II', 'III', 'IV', 'V', 'VI']
         self.keyword_old = keyword_old
         self.keyword_new = keyword_new
@@ -39,13 +39,19 @@ class BaseUse(object):
         self.wb = load_workbook(filename)
         self.ws = self.wb[sheetname]
 
-    def old_data_catch(self, keyword):
+    def keyRow_catch(self, keyword):
+        keyRow = None
+        keyCol = None
         for u_row in self.ws.iter_rows():
             for cell in u_row:
                 if cell.value == keyword:
                     keyRow = cell.row
+        return keyRow, keyCol
+
+    def old_data_catch(self, keyword):
         data_list = []
-        Nomax = self.ws.max_row - keyRow
+        row_use = self.keyRow_catch(keyword)[0]
+        Nomax = self.ws.max_row - row_use
         for c_row in self.ws.iter_rows():
             for cell in c_row:
                 if cell.value == keyword:
@@ -69,6 +75,7 @@ class BaseUse(object):
 
     def data_save(self):
         old_multi_data = []
+
         first_D = self.old_data_catch(keyword=self.keyword_old[0])
         old_multi_data.append(first_D)
         second_D = self.old_data_catch(keyword=self.keyword_old[1])
@@ -99,7 +106,7 @@ class DataWrite(object):
         self.keyword = keyword
         self.data = data
         wb = Workbook()
-        ws = wb.create_sheet('output')
+        ws = wb.create_sheet('output', index=1)
         self.wb = wb
         self.ws = ws
         self.filename = 'NEW_%s' % old_name
@@ -119,27 +126,100 @@ class DataWrite(object):
         self.wb.save(self.filename)
 
 
-def use():
-    t = Deal(dom_path=input('输入处理文件夹路径：'))
-    file_list = t.find_files()
-    for F in file_list:
-        old_deal = BaseUse(filename=F, sheetname='ok')
-        old_data_list1 = old_deal.data_save()
-        old_data_mix2 = old_deal.mix_2(old_data_list1[0], old_data_list1[1], mix_format=r'[%s]%s')
-        old_data_mix2_1 = old_deal.mix_2(old_data_list1[3], old_data_list1[4], mix_format=r'%s：%s')
-        old_data_mix3 = old_deal.mix_3(old_data_list1[7], old_data_list1[8], old_data_list1[9], mix_format=r'%s/%s/%s')
-        D1 = DataWrite(deal_path=t.out_path, old_name=F, keyword=old_deal.keyword_new[0], data=old_data_mix2)
-        D1.write_data()
-        D2 = DataWrite(deal_path=t.out_path, old_name=F, keyword=old_deal.keyword_new[1], data=old_data_list1[2])
-        D2.write_data()
-        D3 = DataWrite(deal_path=t.out_path, old_name=F, keyword=old_deal.keyword_new[2], data=old_data_mix2_1)
-        D3.write_data()
-        D4 = DataWrite(deal_path=t.out_path, old_name=F, keyword=old_deal.keyword_new[3], data=old_data_mix3)
-        D4.write_data()
-        D5 = DataWrite(deal_path=t.out_path, old_name=F, keyword=old_deal.keyword_new[4], data=old_data_list1[5])
-        D5.write_data()
-        D6 = DataWrite(deal_path=t.out_path, old_name=F, keyword=old_deal.keyword_new[5], data=old_data_list1[6])
-        D6.write_data()
+def newfile_format(filename_new):
+    keyword_new = ['I', 'II', 'III', 'IV', 'V', 'VI']
+    wb = load_workbook(filename=filename_new)
+    ws = wb['output']
+    dict_cols = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G'}
+    for key, key_value in enumerate(keyword_new):
+        ws['%s%d' % (dict_cols[key], key)].value = key_value
+
+
+def use_get(file):
+    old_deal = BaseUse(filename=file, sheetname='outlook')
+    old_data_list1 = old_deal.data_save()
+    old_data_mix2 = old_deal.mix_2(old_data_list1[0], old_data_list1[1], mix_format=r'[%s]%s')
+    old_data_mix2_1 = old_deal.mix_2(old_data_list1[3], old_data_list1[4], mix_format=r'%s：%s')
+    old_data_mix3 = old_deal.mix_3(old_data_list1[7], old_data_list1[8], old_data_list1[9], mix_format=r'%s/%s/%s')
+    return old_deal, old_data_list1, old_data_mix2, old_data_mix2_1, old_data_mix3
+
+
+def special_data_get(file, No):  # 输出字典{因子：水准:'', 确认项目：， 期待值：}
+    global que_row
+    special_data = BaseUse(filename=file, sheetname='specical')
+    keyword_use = ['因子:水准', '確認', '期待值']
+    cols_No = special_data.keyRow_catch(keyword=No)[1]  # No的圈值所在列
+    cols_yin = special_data.keyRow_catch(keyword='因子')[1]
+    cols_shui = special_data.keyRow_catch(keyword='水准')[1]
+    cols_que = special_data.keyRow_catch(keyword='確認')[1]
+    cols_qi = special_data.keyRow_catch(keyword='期待值')[1]
+    special_row = []  # 圈值的行数
+    for cell in special_data.ws.cell(column=cols_No):
+        if cell.value == '〇':
+            special_row.append(cell.row)
+    # 黑圈的行数
+    for cell in special_data.ws.cell(column=cols_No):
+        if cell.value == '●':
+            que_row = cell.row
+    # 因子datalist
+    cols_yin_data = []
+    for row in special_row:
+        cols_yin_data.append(special_data.ws['%s%d' % (cols_yin, row)])
+    # 水准datalist
+    cols_shui_data = []
+    for row_s in special_row:
+        cols_shui_data.append(special_data.ws['%s%d' % (cols_shui, row_s)])
+    # mix因子：水准
+    special_out = special_data.mix_2(data_list_base=cols_yin_data, data_list_use=cols_shui_data, mix_format='%s：%s')
+    # 确认项目和期待值
+    que_value = special_data.ws['%s%d' % (cols_que, que_row)]
+    qi_value = special_data.ws['%s%d' % (cols_qi, que_row)]
+    # 创建输出字典
+    out_data = dict.fromkeys(keyword_use)
+    out_data[keyword_use[0]] = special_out
+    out_data[keyword_use[1]] = que_value
+    out_data[keyword_use[2]] = qi_value
+
+    return out_data
+
+
+def use_write(file, c_data, Deal_name):
+    D1 = DataWrite(deal_path=Deal_name.out_path, old_name=file, keyword=c_data[0].keyword_new[0], data=c_data[2])
+    newfile_format(filename_new=F)
+    D1.write_data()
+    D2 = DataWrite(deal_path=Deal_name.out_path, old_name=file, keyword=c_data[0].keyword_new[1], data=c_data[1][2])
+    D2.write_data()
+    D3 = DataWrite(deal_path=Deal_name.out_path, old_name=file, keyword=c_data[0].keyword_new[2], data=c_data[3])
+    D3.write_data()
+    D4 = DataWrite(deal_path=Deal_name.out_path, old_name=file, keyword=c_data[0].keyword_new[3], data=c_data[4])
+    D4.write_data()
+    D5 = DataWrite(deal_path=Deal_name.out_path, old_name=file, keyword=c_data[0].keyword_new[4], data=c_data[1][5])
+    D5.write_data()
+    D6 = DataWrite(deal_path=Deal_name.out_path, old_name=file, keyword=c_data[0].keyword_new[5], data=c_data[1][6])
+    D6.write_data()
+
+
+def consumer(file):
+    data_1 = ''
+    while True:
+        n = yield data_1
+        if not n:
+            return
+        print('[CONSUMER] Consuming %s...' % file)
+        data_1 = use_get(file=file)
+        use_write(file=file, c_data=data_1, Deal_name=t)
+
+
+def produce(c):
+    c.send(None)
+    n = 0
+    while n < 5:
+        n = n + 1
+        print('[PRODUCER] Producing %s...' % n)
+        r = c.send(n)
+        print('[PRODUCER] Consumer return: %s' % r)
+    c.close()
+
 
 if __name__ == '__main__':
     '''
@@ -159,4 +239,8 @@ if __name__ == '__main__':
     print(mix_data)
     '''
 
-    use()
+    t = Deal(dom_path=input('输入处理文件夹路径：'))
+    file_list = t.find_files()
+    for F in file_list:
+        c = consumer(file=F)
+        produce(c)
