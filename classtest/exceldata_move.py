@@ -39,6 +39,13 @@ class BaseUse(object):
         self.wb = load_workbook(filename)
         self.ws = self.wb[sheetname]
 
+    def cols_catch_row(self, column, keyword_us):
+        key_use_row = []
+        for cell in self.ws.cell(column):
+            if cell.value == keyword_us:
+                key_use_row.append(cell.row)
+        return key_use_row
+
     def keyRow_catch(self, keyword):
         keyRow = None
         keyCol = None
@@ -153,14 +160,8 @@ def special_data_get(file, No):  # 输出字典{因子：水准:'', 确认项目
     cols_shui = special_data.keyRow_catch(keyword='水准')[1]
     cols_que = special_data.keyRow_catch(keyword='確認')[1]
     cols_qi = special_data.keyRow_catch(keyword='期待值')[1]
-    special_row = []  # 圈值的行数
-    for cell in special_data.ws.cell(column=cols_No):
-        if cell.value == '〇':
-            special_row.append(cell.row)
-    # 黑圈的行数
-    for cell in special_data.ws.cell(column=cols_No):
-        if cell.value == '●':
-            que_row = cell.row
+    special_row = special_data.cols_catch_row(column=cols_No, keyword_us='〇')  # 圈值的行数
+    que_row = special_data.cols_catch_row(column=cols_No, keyword_us='●') # 黑圈的行数
     # 因子datalist
     cols_yin_data = []
     for row in special_row:
@@ -172,8 +173,8 @@ def special_data_get(file, No):  # 输出字典{因子：水准:'', 确认项目
     # mix因子：水准
     special_out = special_data.mix_2(data_list_base=cols_yin_data, data_list_use=cols_shui_data, mix_format='%s：%s')
     # 确认项目和期待值
-    que_value = special_data.ws['%s%d' % (cols_que, que_row)]
-    qi_value = special_data.ws['%s%d' % (cols_qi, que_row)]
+    que_value = special_data.ws['%s%d' % (cols_que, que_row[0])]
+    qi_value = special_data.ws['%s%d' % (cols_qi, que_row[0])]
     # 创建输出字典
     out_data = dict.fromkeys(keyword_use)
     out_data[keyword_use[0]] = special_out
