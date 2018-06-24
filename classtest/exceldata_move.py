@@ -58,6 +58,11 @@ class BaseUse(object):
                     keyCol = cell.column
         return keyRow, keyCol
 
+    def find_list_key(self, deal_list, keyword=None):
+        for key, value in enumerate(deal_list):
+            if value == keyword:
+                return key
+
     def old_data_catch(self, keyword):
         data_list = []
         row_use = self.keyRow_catch(keyword)[0]
@@ -69,8 +74,8 @@ class BaseUse(object):
                         data_list.append(self.ws['%s%d' % (cell.column, cell.row + No + 1)].value)
         return data_list
 
-    def add_special_data(self, keyword, count, special_dict=dict, out_data_list=list):
-        out_data_list.insert(index=count, object=special_dict[keyword])
+    def add_special_data(self, count, special_data, out_data_list):
+        out_data_list.insert(index=count, object=special_data)
         return out_data_list
 
     def mix_2(self, data_list_base, data_list_use, mix_format):
@@ -147,20 +152,6 @@ class DataWrite(object):
             ws['%s%d' % (dict_cols[key], key)].value = key_value
 
 
-# 运行函数
-
-
-
-
-def use_get(file):
-    old_deal = BaseUse(filename=file, sheetname='outlook')
-    old_data_list1 = old_deal.data_save()
-    old_data_mix2 = old_deal.mix_2(old_data_list1[0], old_data_list1[1], mix_format=r'[%s]%s')
-    old_data_mix2_1 = old_deal.mix_2(old_data_list1[3], old_data_list1[4], mix_format=r'%s：%s')
-    old_data_mix3 = old_deal.mix_3(old_data_list1[7], old_data_list1[8], old_data_list1[9], mix_format=r'%s/%s/%s')
-    return old_deal, old_data_list1, old_data_mix2, old_data_mix2_1, old_data_mix3
-
-
 def special_data_get(file, No):  # 输出字典{因子：水准:'', 确认项目：， 期待值：}
     global que_row
     special_data = BaseUse(filename=file, sheetname='specical')
@@ -191,6 +182,41 @@ def special_data_get(file, No):  # 输出字典{因子：水准:'', 确认项目
     out_data[keyword_use[1]] = que_value
     out_data[keyword_use[2]] = qi_value
     return out_data
+
+
+# 运行函数
+
+
+def use_get(file):
+    old_deal = BaseUse(filename=file, sheetname='outlook')
+    old_data_list1 = old_deal.data_save()
+    old_data_mix2 = old_deal.mix_2(old_data_list1[0], old_data_list1[1], mix_format=r'[%s]%s')
+    old_data_mix2_1 = old_deal.mix_2(old_data_list1[3], old_data_list1[4], mix_format=r'%s：%s')
+    old_data_mix3 = old_deal.mix_3(old_data_list1[7], old_data_list1[8], old_data_list1[9], mix_format=r'%s/%s/%s')
+    # 获取特殊值 No =7
+    # 第一个值替换
+    # ===========特殊值插入list序列
+    No = 7
+    key_row = old_deal.find_list_key(deal_list=old_data_list1[3], keyword='(.....)')
+    key_value_testpoint = old_data_mix2[key_row]
+    key_value_mix3 = old_data_mix3[key_row]
+    key_value_designremark = old_data_list1[2][key_row]
+    n = special_data_get(file=file, No=1)
+    old_data_list1[6][key_row] = n['确认项目']
+    old_data_mix2_1[key_row] = n['因子:水准']
+    old_data_list1[5][key_row] = n['期待值']
+    # 如果No大于1.，添加模式
+    if No > 1:
+        for count_n in range(2, No + 1):
+            n1 = special_data_get(file=file, No=count_n)
+            old_data_mix2.insert(index=key_row + count_n - 1, object=key_value_testpoint)
+            old_data_mix3.insert(index=key_row + count_n - 1, object=key_value_mix3)
+            old_data_list1[2].insert(index=key_row + count_n - 1, object=key_value_designremark)
+            old_data_list1[6].insert(index=key_row + count_n - 1, object=n1['确认项目'])
+            old_data_mix2_1.insert(index=key_row + count_n - 1, object=n1['因子:水准'])
+            old_data_list1[5].insert(index=key_row + count_n - 1, object=n1['期待值'])
+
+    return old_deal, old_data_list1, old_data_mix2, old_data_mix2_1, old_data_mix3
 
 
 def use_write(file, c_data, Deal_name):
@@ -232,7 +258,7 @@ def main():
     file_list = t.find_files()
     for F in file_list:
         get_job = threading.Thread(target=get_thread_job(flies=F), name='get')
-        write_job = threading.Thread(target=write_thread_job(files=F,data=data_c, deal=t), name='write')
+        write_job = threading.Thread(target=write_thread_job(files=F, data=data_c, deal=t), name='write')
         get_job.start()
         get_job.join(timeout=1)
         write_job.start()
