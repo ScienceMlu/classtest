@@ -43,7 +43,7 @@ class BaseUse(object):
 
     def cols_catch_row(self, column, keyword_us):
         key_use_row = []
-        for cell in self.ws.cell(column):
+        for cell in self.ws[column]:
             if cell.value == keyword_us:
                 key_use_row.append(cell.row)
         return key_use_row
@@ -55,6 +55,7 @@ class BaseUse(object):
             for cell in u_row:
                 if cell.value == keyword:
                     keyRow = cell.row
+                    keyCol = cell.column
         return keyRow, keyCol
 
     def old_data_catch(self, keyword):
@@ -137,17 +138,18 @@ class DataWrite(object):
                         self.ws['%s%d' % (cell.column, cell.row + No + 1)].value = self.data[No]
         self.wb.save(self.filename)
 
+    def newfile_format(self):
+        keyword_new = ['I', 'II', 'III', 'IV', 'V', 'VI']
+        wb = load_workbook(filename=self.filename)
+        ws = wb['output']
+        dict_cols = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G'}
+        for key, key_value in enumerate(keyword_new):
+            ws['%s%d' % (dict_cols[key], key)].value = key_value
+
 
 # 运行函数
 
 
-def newfile_format(filename_new):
-    keyword_new = ['I', 'II', 'III', 'IV', 'V', 'VI']
-    wb = load_workbook(filename=filename_new)
-    ws = wb['output']
-    dict_cols = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G'}
-    for key, key_value in enumerate(keyword_new):
-        ws['%s%d' % (dict_cols[key], key)].value = key_value
 
 
 def use_get(file):
@@ -194,7 +196,7 @@ def special_data_get(file, No):  # 输出字典{因子：水准:'', 确认项目
 
 def use_write(file, c_data, Deal_name):
     D1 = DataWrite(deal_path=Deal_name.out_path, old_name=file, keyword=c_data[0].keyword_new[0], data=c_data[2])
-    newfile_format(filename_new=F)
+    D1.newfile_format()
     D1.write_data()
     D2 = DataWrite(deal_path=Deal_name.out_path, old_name=file, keyword=c_data[0].keyword_new[1], data=c_data[1][2])
     D2.write_data()
