@@ -66,6 +66,10 @@ class BaseUse(object):
                         data_list.append(self.ws['%s%d' % (cell.column, cell.row + No + 1)].value)
         return data_list
 
+    def add_special_data(self, keyword, count, special_dict=dict, out_data_list=list):
+        out_data_list.insert(index=count, object=special_dict[keyword])
+        return out_data_list
+
     def mix_2(self, data_list_base, data_list_use, mix_format):
         mix_data = []
         for data_key, data_value in enumerate(data_list_base):
@@ -82,7 +86,6 @@ class BaseUse(object):
 
     def data_save(self):
         old_multi_data = []
-
         first_D = self.old_data_catch(keyword=self.keyword_old[0])
         old_multi_data.append(first_D)
         second_D = self.old_data_catch(keyword=self.keyword_old[1])
@@ -133,6 +136,9 @@ class DataWrite(object):
         self.wb.save(self.filename)
 
 
+# 运行函数
+
+
 def newfile_format(filename_new):
     keyword_new = ['I', 'II', 'III', 'IV', 'V', 'VI']
     wb = load_workbook(filename=filename_new)
@@ -161,7 +167,7 @@ def special_data_get(file, No):  # 输出字典{因子：水准:'', 确认项目
     cols_que = special_data.keyRow_catch(keyword='確認')[1]
     cols_qi = special_data.keyRow_catch(keyword='期待值')[1]
     special_row = special_data.cols_catch_row(column=cols_No, keyword_us='〇')  # 圈值的行数
-    que_row = special_data.cols_catch_row(column=cols_No, keyword_us='●') # 黑圈的行数
+    que_row = special_data.cols_catch_row(column=cols_No, keyword_us='●')  # 黑圈的行数
     # 因子datalist
     cols_yin_data = []
     for row in special_row:
