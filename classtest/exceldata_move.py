@@ -190,7 +190,6 @@ def special_data_get(file, No):  # 输出字典{因子：水准:'', 确认项目
     out_data[keyword_use[0]] = special_out
     out_data[keyword_use[1]] = que_value
     out_data[keyword_use[2]] = qi_value
-
     return out_data
 
 
