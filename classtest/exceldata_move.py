@@ -1,6 +1,8 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 import os
+import time
+import threading
 
 from openpyxl import load_workbook, Workbook
 
@@ -206,26 +208,34 @@ def use_write(file, c_data, Deal_name):
     D6.write_data()
 
 
-def consumer(file):
-    data_1 = ''
-    while True:
-        n = yield data_1
-        if not n:
-            return
-        print('[CONSUMER] Consuming %s...' % file)
-        data_1 = use_get(file=file)
-        use_write(file=file, c_data=data_1, Deal_name=t)
+def get_thread_job(flies):
+    global data_c
+    print('get start\n')
+    time.sleep(0.4)
+    data_c = use_get(file=flies)
+    time.sleep(0.4)
+    print('T1 finish\n')
+    # print('This is an added Thread ,number is %s' % threading.current_thread())
 
 
-def produce(c):
-    c.send(None)
-    n = 0
-    while n < 5:
-        n = n + 1
-        print('[PRODUCER] Producing %s...' % n)
-        r = c.send(n)
-        print('[PRODUCER] Consumer return: %s' % r)
-    c.close()
+def write_thread_job(files, data, deal):
+    print('write start\n')
+    time.sleep(0.4)
+    use_write(file=files, c_data=data, Deal_name=deal)
+    time.sleep(0.4)
+    print('write finish\n')
+
+
+def main():
+    t = Deal(dom_path=input('输入处理文件夹路径：'))
+    file_list = t.find_files()
+    for F in file_list:
+        get_job = threading.Thread(target=get_thread_job(flies=F), name='get')
+        write_job = threading.Thread(target=write_thread_job(files=F,data=data_c, deal=t), name='write')
+        get_job.start()
+        get_job.join(timeout=1)
+        write_job.start()
+        write_job.join(timeout=1)
 
 
 if __name__ == '__main__':
@@ -245,9 +255,4 @@ if __name__ == '__main__':
     print(series_data)
     print(mix_data)
     '''
-
-    t = Deal(dom_path=input('输入处理文件夹路径：'))
-    file_list = t.find_files()
-    for F in file_list:
-        c = consumer(file=F)
-        produce(c)
+    main()
